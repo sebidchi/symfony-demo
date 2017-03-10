@@ -1,0 +1,46 @@
+version: '2'
+services:
+  nginx:
+    build: etc/docker/development/nginx
+    depends_on:
+      - fpm
+    ports:
+      - "8080:80"
+    volumes_from:
+      - code_volume
+    volumes:
+      - ./var/logs/nginx:/var/log/nginx
+
+  fpm:
+    build: etc/docker/development/fpm
+    container_name: app_dev_fpm
+    depends_on:
+      - mysql
+    ports:
+      - "2222:22"
+      - "9000:9000"
+    volumes_from:
+      - key_volume
+      - code_volume
+
+  mysql:
+    image: mysql:5.7
+    ports:
+        - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=appdev-api
+    volumes:
+      - db_data:/var/lib/mysql
+
+  key_volume:
+    image: busybox
+    volumes:
+      - ~/.ssh:/root/.ssh
+
+  code_volume:
+    image: busybox
+    volumes:
+      - .:/app
+volumes:
+  db_data:
